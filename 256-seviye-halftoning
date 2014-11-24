@@ -1,0 +1,114 @@
+%resmi okutuyoruz
+a=imread('biber.jpg');
+a=imresize(a,[128,128]);% resmi yeniden boyutlandırıyoruz. çünkü çok büyük 
+%olduğu zaman bilgisayarın çok uzun süre çalışması gerekir. 
+%boyut ne kadar yüksek olursa kalite o kadar yüksek olur
+
+%resm gri seviyeli resim haline dönüştürüyruz
+a=rgb2gray(a);
+%elamanları üzerinde halftoning olayını gerçekleştireceğimiz resim
+%matrisini
+%256 seviyeli halftoning yapmak için 16 ile çarpıyoruz.
+%böylece matrisin her bir elemanı 16x16 birer matris  hanine gelecek.
+b=zeros(size(a)*16);
+%oluşan yeni resimin her bir elemanı artık 16x16 matris haline dönüştü.
+
+%for döngüsü ile orjinal resim matrsisinin elemanları üzerinde dönüyoruz. Çünkü
+%matrisin her bir elemanın degerini oluşturduğumuz b matrisindeki orjinal 
+%resmin her bir elemanına karşılık gelen 16x16 matris oluşturmak için kullanacağımız 
+%algoritmadi beyaz nokta sayısı olarak kullanacağız. 
+
+for m=1:size(a,1)
+    for n=1:size(a,2)
+        %Desen oluşturma algoritmsı başlangıç
+        %Algoritma çalışma şekli:
+        %İlk olarak 16x16 boyutunda içi sıfır yani 256 siyah noktaya sahip matris oluşturuyor.
+        %orjinal resmin her bir pikseli bu 16x16 matris ile değiştirilecek.
+        %orjinal resimin her bir elemanın yerine yerleştirilecek olan bu desenler orjinal resimden okunan deger kadar
+        %16x16 matriste kodladığım kurala göre işaretliyor.
+        %Kural: 16x16 matrisin ilk satırından başlamak şartı ile
+        %işaretlenecek. Beyaz nokta sayısı kadar satırların bir başından
+        %bir sonundan işaretlediği yeri atlayarak çapraz şekilde beyaz
+        %noktaları işaretleyecek. Örneğin orjinal resim a olsun. Okunan
+        %piksel değeri a(200,22)=6; Yani bu pikselin yerini temsil edecek
+        %olan 16x16 matriste 6 beyaz nokta olacak. Bu 6 nokta algoritmanın
+        %kuralına göre şöyle değılacak.
+        
+        %   1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1
+        %   1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1
+        %   1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        %   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1
+        
+        
+        dmrc16=zeros(16,16);
+        sayac=0;
+        i=1;
+        k=1;
+        noktaSayisi=a(m,n);
+        while sayac<=noktaSayisi
+            if i<=16
+                if dmrc16(i,k)==1
+                    if dmrc16(17-i,17-k)==1
+                        if dmrc16(i+1,17-k)==1
+                            if dmrc16(16-i,k)==1
+                                i=i+2;
+                            elseif dmrc16(16-i,k)==0
+                                dmrc16(16-i,k)=1;
+                                sayac=sayac+1;
+                            end
+                        elseif dmrc16(i+1,17-k)==0
+                            dmrc16(i+1,17-k)=1;
+                            sayac=sayac+1;
+                        end
+                    elseif dmrc16(17-i,17-k)==0
+                        dmrc16(17-i,17-k)=1;
+                        sayac=sayac+1;
+                    end
+                elseif dmrc16(i,k)==0
+                    dmrc16(i,k)=1;
+                    sayac=sayac+1;
+                end
+            else
+                i=1;
+                k=k+1;
+            end
+        end %Desen oluşturma algoritmsı son
+        
+        %oluşacak yeni half toning resim matrisi üzerinde işlem yapmak için
+        %satır ve sutun boyutlarını hesaplıyoruz. Aşağıdaki kodlarda
+        %görüldüğü gibi adımlarımız 16 farkla artıyor. bunun nedeni her bir
+        %pikseli halftoning resimde 16x16 matris ile temsil edecek
+        %olmamdır.
+        y_m=m+15*(m-1);
+        y_n=n+15*(n-1);
+        
+        %orjinal resmin pikselinden alınan beyaz nokta sayısına göre
+        %oluşturulmuş 16x16 matrisi yerleştiren kodlar:
+        b(y_m:y_m+15, y_n:y_n+15)=dmrc16;
+        
+    end
+end
+%üzerinde halftoning işlemi yaptığımız resmi halftone.jpg adı ile kayıt edelim
+imwrite(b, 'halftone.jpg');
+c=imread('halftone.jpg');
+imshow('halftone.jpg');
+%çıkışta alınan resim boyutu orjinale göre çok büyük olacak SVD yöntemi
+%kullanarak resim boyutunu sıkıştıralım.8-10 kb kazanç sağlayabiliriz.
+c=im2double(c);
+[U,S,V]=svd(c);
+c=U*S*V';
+%halftoning yaptığımız ve SVD ile sıkıştırdığımız resmi halftoneSVD.jpg adı
+%ile kayıt edelim.
+imwrite(c, 'halftoneSVD.jpg');
