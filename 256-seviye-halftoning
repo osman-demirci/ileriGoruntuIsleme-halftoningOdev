@@ -1,5 +1,5 @@
 %resmi okutuyoruz
-a=imread('biber.jpg');
+a=imread('http://i.imgur.com/uY9AuJd.jpg');
 a=imresize(a,[128,128]);% resmi yeniden boyutlandırıyoruz. çünkü çok büyük 
 %olduğu zaman bilgisayarın çok uzun süre çalışması gerekir. 
 %boyut ne kadar yüksek olursa kalite o kadar yüksek olur
